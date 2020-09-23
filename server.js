@@ -1,33 +1,33 @@
 const fetch = require('node-fetch');
 const StreamZip = require('node-stream-zip');
-var fs = require('fs');
+const fs = require('fs');
+const fastify = require('fastify')({ logger: true })
 
+const PORT = process.env.PORT || 3000;
 
-const fastify = require('fastify')({
-    logger: true
-  })
-  
-  fastify.get('/listcontents', async (request, reply) => {
+// ROUTES
+fastify.get('/listcontents', async (request, reply) => {
     const ze = new netZipExtract(request.query.filename, request.query.length);
     //'https://developer.api.autodesk.com/oss/v2/signedresources/8c3540de-4d5f-46c1-8d51-8e3abb2ec821?region=US', 11122924);
     const contents = await ze.getContents();
     console.log(contents);
     return contents;
-  })
+})
 
-  fastify.post('/', async (request, reply) => {
-    const input = request.body;      
-    const ze = new netZipExtract(input.url, input.filelength);
-    ze.getContents();
+fastify.get('/', async (request, reply) => {
+    return { is: 'alive' }
+})
+
+fastify.post('/', async (request, reply) => {
     return { is: 'awake' }
-  })
+})
 
-  fastify.listen(8080, (err, address) => {
+fastify.listen(PORT, (err, address) => {
     if (err) throw err
     fastify.log.info(`server listening on ${address}`)
-  })
+})
 
-
+// Main
 class netZipExtract {
     constructor(URL, fileLength) {
         console.log(`starting netZipExtract URL:${URL} ${fileLength}`)
