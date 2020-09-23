@@ -3,8 +3,6 @@ const StreamZip = require('node-stream-zip');
 const fs = require('fs');
 const fastify = require('fastify')({ logger: true })
 
-const PORT = process.env.PORT || 3000;
-
 // ROUTES
 fastify.get('/listcontents', async (request, reply) => {
     const ze = new netZipExtract(request.query.filename, request.query.length);
@@ -22,7 +20,7 @@ fastify.post('/', async (request, reply) => {
     return { is: 'awake' }
 })
 
-fastify.listen(PORT, (err, address) => {
+fastify.listen(process.env.PORT, "0.0.0.0", (err, address) => {
     if (err) throw err
     fastify.log.info(`server listening on ${address}`)
 })
