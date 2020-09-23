@@ -1,0 +1,19 @@
+{
+  "name": "bim360-zip-extract",
+  "version": "1.0.0",
+  "description": "proxy-server to extract small file out of a very-large zip file hosted on bim360",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "michael.beale@autodesk.com",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^3.4.1",
+    "fs": "0.0.1-security",
+    "node-fetch": "^2.6.1",
+    "node-stream-zip": "^1.11.3",
+    "node-zip": "^1.1.1",
+    "unzip": "^0.1.11"
+  }
+}
