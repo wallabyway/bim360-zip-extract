@@ -54,7 +54,8 @@ class netZipExtract {
             //'Authorization': `Bearer ${this.token}`
         }});
         // Write bytes to file
-        fs.writeSync(fd, (await res.buffer()), 0, buff.length, offset);
+        const buff = await res.buffer();
+        fs.writeSync(fd, buff, 0, buff.length, offset);
     }
 
     getContents() { return new Promise(async resolve => {
