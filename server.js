@@ -53,29 +53,36 @@ class netZipExtract {
             'range': `bytes=${offset}-${offset+length}`,
             //'Authorization': `Bearer ${this.token}`
         }});
+        if (res.status != 206) throw(`error:${res.statusText}, bytes=${offset}-${offset+length}`)
         // Write bytes to file
         const buff = await res.buffer();
         fs.writeSync(fd, buff, 0, buff.length, offset);
+        return res.status;
     }
 
     getContents() { return new Promise(async resolve => {
 
-        const chunksize = 16*1024; // only need 16k bytes of data
+        try {
+            const chunksize = 2*1024; // only need 16k bytes of data
 
-        //fetch header, footer, write bytes temp file
-        const tmpfile = fs.openSync(this.tmpFn, 'w');
-        await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header
-        await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
-        fs.closeSync(tmpfile);
-
-        // now, extract content directory
-        this.zip = new StreamZip({ file: this.tmpFn, storeEntries: true });
-        this.zip.on('ready', () => { 
-            this.entries = this.zip.entries();
-            //zip.close();
-            resolve(this.entries);
-        })});
-    }
+            //fetch header, footer, write bytes temp file
+            const tmpfile = fs.openSync(this.tmpFn, 'w');
+            await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
+            await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
+            fs.closeSync(tmpfile);
+    
+            // now, extract content directory
+            this.zip = new StreamZip({ file: this.tmpFn, storeEntries: true });
+            this.zip.on('error', (err) => { throw(`error:${err}`) });
+            this.zip.on('ready', () => { 
+                this.entries = this.zip.entries();
+                //this.zip.close();
+                resolve(this.entries);
+            });
+        } catch(err) {
+            resolve({status: err});
+        }
+    })};
 
     // extract a filename from the bim360 zip, post it to subfolder
     async extractFile( filename, destURL ) {
@@ -90,15 +97,17 @@ class netZipExtract {
         await this._fetchWrite(tmpfile, offset, size + zipHdrBytes); // fetch/write our filename within the zip
         fs.closeSync(tmpfile);
 
+        console.log('bytes transfered, tmp.zip updated.  Starting unzip')
+
         // now, use StreamZip to do it's magic.
         this.zip.extract( filename, filename, async err => {
-            if (err) resolve({status: 'Zip-Extract error'});
+            if (err) resolve({status: `Zip-Extract error: ${err}`});
 
             // upload file to forge signedURL
             const data = fs.readFileSync(filename);
             const res = await fetch( destURL, { method: 'PUT', body: data });
             // header: { Authorization: `Bearer ${this.token}` }
-            this.zip.close();
+            //this.zip.close();
             resolve({status: `complete. ${filename} Extracted and uploaded to bim360`})
         });
     })}
