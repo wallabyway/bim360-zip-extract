@@ -44,7 +44,6 @@ class netZipExtract {
         this.URL = URL;
         this.fileLength = fileLength;
         this.tmpFn = 'tmp.zip';
-        console.log(`starting netZipExtract URL:${URL} ${fileLength}`)
     }
 
     // fetch a chunk of bytes from BIM360 and write to 'temp' file on fs
@@ -61,11 +60,11 @@ class netZipExtract {
     }
 
     getContents() { return new Promise(async resolve => {
-
         try {
-            const chunksize = 2*1024; // only need 16k bytes of data
+            console.log(`fetch/extract Contents: ${this.URL} size ${this.fileLength}...`)
 
             //fetch header, footer, write bytes temp file
+            const chunksize = 2*1024; // only need 16k bytes of data
             const tmpfile = fs.openSync(this.tmpFn, 'w');
             await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
             await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
@@ -85,32 +84,39 @@ class netZipExtract {
     })};
 
     // extract a filename from the bim360 zip, post it to subfolder
-    async extractFile( filename, destURL ) {
-    return new Promise(async resolve => {
-        // get filename's offset and byte-length, located inside the zip file
-        const offset = this.entries[filename].offset;
-        const size = this.entries[filename].compressedSize;
+    async extractFile( filename, destURL ) { return new Promise(async resolve => {
+        try {
+            // get filename's offset and byte-length, located inside the zip file
+            const offset = this.entries[filename].offset;
+            const size = this.entries[filename].compressedSize;
 
-        // now, fetch the exact bytes from bim360, and write to our temp file
-        const tmpfile = fs.openSync(this.tmpFn, 'a');
-        const zipHdrBytes = 128;
-        await this._fetchWrite(tmpfile, offset, size + zipHdrBytes); // fetch/write our filename within the zip
-        fs.closeSync(tmpfile);
+            console.log(`Fetching ${filename}, bytes at ${offset}, size ${size}...`)
 
-        console.log('bytes transfered, tmp.zip updated.  Starting unzip')
+            // now, fetch the exact bytes from bim360, and write to our temp file
+            const tmpfile = fs.openSync(this.tmpFn, 'a');
+            const zipHdrBytes = 128;
+            await this._fetchWrite(tmpfile, offset, size + zipHdrBytes); // fetch/write our filename within the zip
+            fs.closeSync(tmpfile);
 
-        // now, use StreamZip to do it's magic.
-        this.zip.extract( filename, filename, async err => {
-            if (err) resolve({status: `Zip-Extract error: ${err}`});
+            console.log(`Extracting ${filename} from ${this.tmpFn}...`)
 
-            // upload file to forge signedURL
-            const data = fs.readFileSync(filename);
-            const res = await fetch( destURL, { method: 'PUT', body: data });
-            // header: { Authorization: `Bearer ${this.token}` }
-            //this.zip.close();
-            resolve({status: `complete. ${filename} Extracted and uploaded to bim360`})
-        });
+            // now, use StreamZip to do it's magic.
+            this.zip.extract( filename, filename, async err => {
+                if (err) throw(`Zip-Extract error: ${err}`);
+
+                console.log(`Zip Extraction success.  Uploading ${filename} to ${destURL}...`)
+
+                // upload file to forge signedURL
+                const data = fs.readFileSync(filename);
+                const res = await fetch( destURL, { method: 'PUT', body: data });
+                // header: { Authorization: `Bearer ${this.token}` }
+                //this.zip.close();
+                console.log(`Upload complete: ${filename} to ${destURL}.`)
+                resolve({status: `complete. ${filename} Extracted and uploaded to bim360`})
+            });
+        } catch(err) {
+            resolve({status: err});
+        }
     })}
+    
 }
-
-// result.rvt = https://developer.api.autodesk.com/oss/v2/signedresources/2552d59e-e3c7-4a50-807a-42a1d89e026e?region=US
