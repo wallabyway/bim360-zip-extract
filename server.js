@@ -75,7 +75,7 @@ class netZipExtract {
             this.zip.on('error', (err) => { throw(`error:${err}`) });
             this.zip.on('ready', () => { 
                 this.entries = this.zip.entries();
-                //this.zip.close();
+                this.zip.close();
                 resolve(this.entries);
             });
         } catch(err) {
@@ -101,7 +101,12 @@ class netZipExtract {
             console.log(`Extracting ${filename} from ${this.tmpFn}...`)
 
             // now, use StreamZip to do it's magic.
-            this.zip.extract( filename, filename, async err => {
+            this.zip = new StreamZip({ file: this.tmpFn, storeEntries: true });
+            this.zip.on('error', (err) => { throw(`error:${err}`) });
+            this.zip.on('ready', () => { 
+                this.entries = this.zip.entries();
+
+                this.zip.extract( filename, filename, async err => {
                 if (err) throw(`Zip-Extract error: ${err}`);
 
                 console.log(`Zip Extraction success.  Uploading ${filename} to ${destURL}...`)
@@ -113,6 +118,7 @@ class netZipExtract {
                 //this.zip.close();
                 console.log(`Upload complete: ${filename} to ${destURL}.`)
                 resolve({status: `complete. ${filename} Extracted and uploaded to bim360`})
+                });
             });
         } catch(err) {
             resolve({status: err});
