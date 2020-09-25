@@ -97,8 +97,11 @@ class netZipExtract {
         console.log(`Fetching ${filename}, bytes at ${offset}, size ${size}...`)
 
         // now, fetch the exact bytes from bim360, and write to our temp file
-        const tmpfile = fs.openSync(this.tmpFn, 'a');
+        const tmpfile = fs.openSync(this.tmpFn, 'w');
         const zipHdrBytes = 128;
+        const chunksize = 4 * 1024; // only need 16k bytes of data
+        await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
+        await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
         await this._fetchWrite(tmpfile, offset, size + zipHdrBytes); // fetch/write our filename within the zip
         fs.closeSync(tmpfile);
 
