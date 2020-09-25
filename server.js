@@ -26,10 +26,11 @@ fastify.get('/extract', async (request, reply) => {
 //    ze = new netZipExtract(request.query.filename, request.query.length);
 //    const contents = await ze.getContents();
     //try {
-    let result = await ze.extractFile(request.query.outfile, request.query.destURL);
+    let result = await ze.extractFile(reply, request.query.outfile, request.query.destURL);
     //} catch(err) {
       //  return {status: err};
     //}
+    reply.send(result);
     return result;
 })
 
@@ -88,7 +89,7 @@ class netZipExtract {
     })};
 
     // extract a filename from the bim360 zip, post it to subfolder
-    async extractFile( filename, destURL ) { 
+    async extractFile( res, filename, destURL ) { 
     return new Promise(async resolve => {
         // get filename's offset and byte-length, located inside the zip file
         const offset = this.entries[filename].offset;
@@ -107,6 +108,8 @@ class netZipExtract {
 
         console.log(`Extracting ${filename} from ${this.tmpFn}...`)
 
+        this.res = res;
+
         // now, use StreamZip to do it's magic.
         this.zip = new StreamZip({ file: this.tmpFn, storeEntries: true });
         this.zip.on('error', (err) => { console.log(`error:${err}`) });
@@ -117,6 +120,8 @@ class netZipExtract {
             if (err) throw(`Zip-Extract error: ${err}`);
 
             console.log(`Zip Extraction success.  Uploading ${filename} to ${destURL}...`)
+
+            this.res.send('uploading...')
 
             // upload file to forge signedURL
             const data = fs.readFileSync(filename);
