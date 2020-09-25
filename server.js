@@ -25,7 +25,11 @@ fastify.get('/extract', async (request, reply) => {
 // http://localhost:3000/extract?outfile=Three Run Stair.rvt&destURL=https://developer.api.autodesk.com/oss/v2/signedresources/2552d59e-e3c7-4a50-807a-42a1d89e026e?region=US
 //    ze = new netZipExtract(request.query.filename, request.query.length);
 //    const contents = await ze.getContents();
-    const result = await ze.extractFile(request.query.outfile, request.query.destURL);
+    //try {
+    let result = await ze.extractFile(request.query.outfile, request.query.destURL);
+    //} catch(err) {
+      //  return {status: err};
+    //}
     return result;
 })
 
@@ -64,7 +68,7 @@ class netZipExtract {
             console.log(`fetch/extract Contents: ${this.URL} size ${this.fileLength}...`)
 
             //fetch header, footer, write bytes temp file
-            const chunksize = 2*1024; // only need 16k bytes of data
+            const chunksize = 4*1024; // only need 16k bytes of data
             const tmpfile = fs.openSync(this.tmpFn, 'w');
             await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
             await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
@@ -84,45 +88,42 @@ class netZipExtract {
     })};
 
     // extract a filename from the bim360 zip, post it to subfolder
-    async extractFile( filename, destURL ) { return new Promise(async resolve => {
-        try {
-            // get filename's offset and byte-length, located inside the zip file
-            const offset = this.entries[filename].offset;
-            const size = this.entries[filename].compressedSize;
+    async extractFile( filename, destURL ) { 
+    return new Promise(async resolve => {
+        // get filename's offset and byte-length, located inside the zip file
+        const offset = this.entries[filename].offset;
+        const size = this.entries[filename].compressedSize;
 
-            console.log(`Fetching ${filename}, bytes at ${offset}, size ${size}...`)
+        console.log(`Fetching ${filename}, bytes at ${offset}, size ${size}...`)
 
-            // now, fetch the exact bytes from bim360, and write to our temp file
-            const tmpfile = fs.openSync(this.tmpFn, 'a');
-            const zipHdrBytes = 128;
-            await this._fetchWrite(tmpfile, offset, size + zipHdrBytes); // fetch/write our filename within the zip
-            fs.closeSync(tmpfile);
+        // now, fetch the exact bytes from bim360, and write to our temp file
+        const tmpfile = fs.openSync(this.tmpFn, 'a');
+        const zipHdrBytes = 128;
+        await this._fetchWrite(tmpfile, offset, size + zipHdrBytes); // fetch/write our filename within the zip
+        fs.closeSync(tmpfile);
 
-            console.log(`Extracting ${filename} from ${this.tmpFn}...`)
+        console.log(`Extracting ${filename} from ${this.tmpFn}...`)
 
-            // now, use StreamZip to do it's magic.
-            this.zip = new StreamZip({ file: this.tmpFn, storeEntries: true });
-            this.zip.on('error', (err) => { throw(`error:${err}`) });
-            this.zip.on('ready', () => { 
-                this.entries = this.zip.entries();
+        // now, use StreamZip to do it's magic.
+        this.zip = new StreamZip({ file: this.tmpFn, storeEntries: true });
+        this.zip.on('error', (err) => { console.log(`error:${err}`) });
+        this.zip.on('ready', () => { 
+            this.entries = this.zip.entries();
 
-                this.zip.extract( filename, filename, async err => {
-                if (err) throw(`Zip-Extract error: ${err}`);
+            this.zip.extract( filename, filename, async err => {
+            if (err) throw(`Zip-Extract error: ${err}`);
 
-                console.log(`Zip Extraction success.  Uploading ${filename} to ${destURL}...`)
+            console.log(`Zip Extraction success.  Uploading ${filename} to ${destURL}...`)
 
-                // upload file to forge signedURL
-                const data = fs.readFileSync(filename);
-                const res = await fetch( destURL, { method: 'PUT', body: data });
-                // header: { Authorization: `Bearer ${this.token}` }
-                //this.zip.close();
-                console.log(`Upload complete: ${filename} to ${destURL}.`)
-                resolve({status: `complete. ${filename} Extracted and uploaded to bim360`})
-                });
+            // upload file to forge signedURL
+            const data = fs.readFileSync(filename);
+            const res = await fetch( destURL, { method: 'PUT', body: data });
+            // header: { Authorization: `Bearer ${this.token}` }
+            //this.zip.close();
+            console.log(`Upload complete: ${filename} to ${destURL}.`)
+            resolve({status: `complete. ${filename} Extracted and uploaded to bim360`})
             });
-        } catch(err) {
-            resolve({status: err});
-        }
+        });
     })}
     
 }
