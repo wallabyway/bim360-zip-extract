@@ -115,7 +115,7 @@ class netZipExtract {
 
     async _createTempZip(offset, size) {
         const tmpfile = fs.openSync(this.tmpFn, 'w');
-        const chunksize = 2 * 1024; // only need 16k bytes of data
+        const chunksize = 16 * 1024; // only need 16k bytes of data
         await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
         await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
         fs.closeSync(tmpfile);        
@@ -126,7 +126,7 @@ class netZipExtract {
             'range': `bytes=${offset}-${offset+size+zipHeaderOffset}`,
             'Authorization': `Bearer ${this.token}`
           }});
-          const dest = fs.createWriteStream(this.tmpFn, {flags:'a', start:offset, highWaterMark: 2 * 1024 * 1024});
+          const dest = fs.createWriteStream(this.tmpFn, {flags:'a+', start:offset, highWaterMark: 2 * 1024 * 1024});
           await new Promise((resolve) => {
               res.body.pipe(dest);
               dest.on("finish", () => resolve());
