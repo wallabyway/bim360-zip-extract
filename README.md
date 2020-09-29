@@ -29,7 +29,7 @@ endpoint: /transfer
 - INPUT:  filename
 - OUTPUT: was transfer successful?  (json format)
 - Example: /transfer?filename=master.rvt
-
+- Optional INPUT: destProject, destFolder (specify different destination "project & folder")
 ---
 
 ![Screen Shot 2020-09-29 at 12 10 46 PM](https://user-images.githubusercontent.com/440241/94604750-f8362480-024c-11eb-92a6-f096fe747db8.JPG)
