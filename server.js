@@ -2,7 +2,6 @@ const fetch = require('node-fetch');
 const StreamZip = require('node-stream-zip');
 const fs = require('fs');
 const path = require('path');
-const { resolve } = require('path');
 const fastify = require('fastify')({ logger: true })
 let ze = null;
 let bm = null;
@@ -83,6 +82,29 @@ fastify.get('/extract2', async (request, reply) => {
         return {status: err};
     }
 })
+
+
+    async _createTempZip2(offset, size) {
+        const tmpfile = fs.openSync(this.tmpFn, 'w');
+        const chunksize = 16 * 1024; // only need 16k bytes of data
+        await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
+        await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
+        fs.closeSync(tmpfile);        
+        if (offset && size) {
+          // Write bytes to file
+          const zipHeaderOffset = 128;
+          const res = await fetch( this.URL, { headers: {
+            'range': `bytes=${offset}-${offset+size+zipHeaderOffset}`,
+            'Authorization': `Bearer ${this.token}`
+          }});
+          const dest = fs.createWriteStream(this.tmpFn, {flags:'a+', start:offset, highWaterMark: 2 * 1024 * 1024});
+          await new Promise((resolve) => {
+              res.body.pipe(dest);
+              dest.on("finish", () => resolve());
+          })
+        }
+    }
+
 */
 
 
@@ -115,24 +137,13 @@ class netZipExtract {
 
     async _createTempZip(offset, size) {
         const tmpfile = fs.openSync(this.tmpFn, 'w');
-        const chunksize = 16 * 1024; // only need 16k bytes of data
+        const chunksize = 4 * 1024; // only need 16k bytes of data
         await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
         await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
+        const zipHeaderOffset = 128;
+        if (offset && size)
+            await this._fetchWrite(tmpfile, offset, size + zipHeaderOffset); // fetch/write our filename within the zip
         fs.closeSync(tmpfile);        
-        if (offset && size) {
-          // Write bytes to file
-          const zipHeaderOffset = 128;
-          const res = await fetch( this.URL, { headers: {
-            'range': `bytes=${offset}-${offset+size+zipHeaderOffset}`,
-            'Authorization': `Bearer ${this.token}`
-          }});
-          const dest = fs.createWriteStream(this.tmpFn, {flags:'a+', start:offset, highWaterMark: 2 * 1024 * 1024});
-          await new Promise((resolve) => {
-              res.body.pipe(dest);
-              dest.on("finish", () => resolve());
-          })
-        }
-      //await this._fetchWrite(tmpfile, offset, size + zipHeaderOffset); // fetch/write our filename within the zip
     }
 
     //
@@ -172,7 +183,7 @@ class netZipExtract {
         // now, use StreamZip to do it's magic.
         this._log(`Extracting ${filename} from ${this.tmpFn}...`)
         this.zip = new StreamZip({ file: this.tmpFn, storeEntries: true });
-        //this.zip.on('error', err => { throw(`error:${err}`) });
+        this.zip.on('error', err => { throw(`error:${err}`) });
         this.zip.on('ready', async () => { 
             this.entries = this.zip.entries();
 
@@ -183,7 +194,7 @@ class netZipExtract {
 
             // upload file to forge signedURL
             let bytes = size;
-            const stream = fs.createReadStream(filename,{highWaterMark: 2 * 1024 * 1024 });
+            const stream = fs.createReadStream(filename,{highWaterMark: 1024 * 1024 });
             stream.on('data', b => { 
                 this._log(`Upload progress ${96-Math.round((bytes/size)*96)}%`)
                 bytes-=b.length;
