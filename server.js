@@ -14,6 +14,7 @@ fastify.get('/', async (request, reply) => {
 // INPUT: projectID, folderID, AccessToken
 // OUTPUT: list of BIM360 files in the folder
 fastify.get('/bim/list', async (request, reply) => {
+    if (!request.query.project) return "INPUT: project, folder, token";
     bm = new BIM360utils(request.query.project, request.query.folder, request.query.token);
     const res = await bm.getFolderContents();
     return res;
@@ -22,6 +23,7 @@ fastify.get('/bim/list', async (request, reply) => {
 // INPUT: zipURL, size (file-size)
 // OUTPUT: list of zip file contents
 fastify.get('/listZipContents', async (request, reply) => {
+    if (!request.query.zipURL) return "INPUT: zipURL, size (file-size)";
     try {
         ze = new netZipExtract(request.query.zipURL, request.query.size, bm.token);
         const contents = await ze.getContents();
@@ -32,6 +34,7 @@ fastify.get('/listZipContents', async (request, reply) => {
 // INPUT: filename
 // OUTPUT: status of result (timeout after 30seconds)
 fastify.get('/transfer', async (request, reply) => {
+    if (!request.query.filename) return "INPUT: filename";
     try {
         const filename = request.query.filename;
         if (!ze && !bm) return {status:`not-ready.  Use 'listcontents' first`};
@@ -47,6 +50,7 @@ fastify.get('/transfer', async (request, reply) => {
 // INPUT: filename
 // OUTPUT: status of job
 fastify.get('/status', async (request, reply) => {
+    if (!request.query.filename) return "INPUT: filename";
     const id = request.query.filename;
     if (!id) return;
     return (id) ?  `{ "${id}" : "${ze.session[id]}" }` : "missing filename= parameter"
