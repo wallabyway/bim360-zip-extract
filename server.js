@@ -172,7 +172,7 @@ class netZipExtract {
         // now, use StreamZip to do it's magic.
         this._log(`Extracting ${filename} from ${this.tmpFn}...`)
         this.zip = new StreamZip({ file: this.tmpFn, storeEntries: true });
-        this.zip.on('error', err => { throw(`error:${err}`) });
+        //this.zip.on('error', err => { throw(`error:${err}`) });
         this.zip.on('ready', async () => { 
             this.entries = this.zip.entries();
 
