@@ -126,7 +126,7 @@ class netZipExtract {
             'range': `bytes=${offset}-${offset+size+zipHeaderOffset}`,
             'Authorization': `Bearer ${this.token}`
           }});
-          const dest = fs.createWriteStream(this.tmpFn, {flags:'a+', start:offset, highWaterMark: 1024 * 1024});
+          const dest = fs.createWriteStream(this.tmpFn, {flags:'a', start:offset, highWaterMark: 2 * 1024 * 1024});
           await new Promise((resolve) => {
               res.body.pipe(dest);
               dest.on("finish", () => resolve());
@@ -183,7 +183,7 @@ class netZipExtract {
 
             // upload file to forge signedURL
             let bytes = size;
-            const stream = fs.createReadStream(filename,{highWaterMark: 1024 * 1024 });
+            const stream = fs.createReadStream(filename,{highWaterMark: 2 * 1024 * 1024 });
             stream.on('data', b => { 
                 this._log(`Upload progress ${96-Math.round((bytes/size)*96)}%`)
                 bytes-=b.length;
