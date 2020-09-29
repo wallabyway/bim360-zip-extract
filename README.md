@@ -36,3 +36,6 @@ endpoint: /status
 - OUTPUT: get progress of transfer (json format)
 - Example: /status?filename=master.rvt
 
+
+DEMO: https://bim360-zip-extract.herokuapp.com
+
