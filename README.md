@@ -16,6 +16,7 @@ endpoint: /listcontents
 - OUTPUT: list of files (json format)
 - Example: /listcontents?project=1234&folder=1234&token=ey3348...
 
+Reference: [The structure of a PkZIP](https://users.cs.jmu.edu/buchhofp/forensics/formats/pkzip.html)
 
 ![Screen Shot 2020-09-29 at 12 10 41 PM](https://user-images.githubusercontent.com/440241/94604737-f53b3400-024c-11eb-96ea-2270714abf89.JPG)
 
