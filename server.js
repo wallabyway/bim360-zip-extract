@@ -2,6 +2,7 @@ const fetch = require('node-fetch');
 const StreamZip = require('node-stream-zip');
 const fs = require('fs');
 const path = require('path');
+const { resolve } = require('path');
 const fastify = require('fastify')({ logger: true })
 let ze = null;
 let bm = null;
@@ -100,29 +101,37 @@ class netZipExtract {
     //
     // fetch a chunk of bytes from BIM360 and write to 'temp' file on fs
     //
-    async _fetchWrite( fd, offset, length ) {
+    async _fetchWrite( fd, offset, length ) { 
         const res = await fetch( this.URL, { headers: {
             'range': `bytes=${offset}-${offset+length}`,
             'Authorization': `Bearer ${this.token}`
         }});
         if (res.status != 206) 
             throw(`error:${res.statusText}, bytes=${offset}-${offset+length}`)
-        // Write bytes to file
         const buff = await res.buffer();
         fs.writeSync(fd, buff, 0, buff.length, offset);
         return res.status;
     }
 
-    async _createTempZip(offset, size) {
+    async _createTempZip(offset, size) { return new Promise(async resolve => {
         const tmpfile = fs.openSync(this.tmpFn, 'w');
         const chunksize = 4 * 1024; // only need 16k bytes of data
         await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
         await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
-        const zipHeaderOffset = 128;
-        if (offset && size)
-            await this._fetchWrite(tmpfile, offset, size + zipHeaderOffset); // fetch/write our filename within the zip
         fs.closeSync(tmpfile);        
-    }
+        if (offset && size) {
+          // Write bytes to file
+          const zipHeaderOffset = 128;
+          const wstrm = fs.createWriteStream(this.tmpFn, {flags:'a', start:offset});
+          const res = await fetch( this.URL, { headers: {
+            'range': `bytes=${offset}-${offset+size+zipHeaderOffset}`,
+            'Authorization': `Bearer ${this.token}`
+          }});
+          res.body.pipe(wstrm);
+          wstrm.on('finish', () => {resolve()});
+          //await this._fetchWrite(tmpfile, offset, size + zipHeaderOffset); // fetch/write our filename within the zip
+        } else {resolve();}
+    })}
 
     //
     // get directory-list inside zip (that's hosted on bim360)
