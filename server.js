@@ -122,7 +122,7 @@ class netZipExtract {
         if (offset && size) {
           // Write bytes to file
           const zipHeaderOffset = 128;
-          const wstrm = fs.createWriteStream(this.tmpFn, {flags:'a', start:offset});
+          const wstrm = fs.createWriteStream(this.tmpFn, {flags:'a', start:offset, highWaterMark: 1024 * 1024});
           const res = await fetch( this.URL, { headers: {
             'range': `bytes=${offset}-${offset+size+zipHeaderOffset}`,
             'Authorization': `Bearer ${this.token}`
