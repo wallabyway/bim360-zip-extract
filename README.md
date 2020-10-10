@@ -4,7 +4,6 @@ extract files from a very large zip file, on bim360
 
 ### Four API's
 
-![Screen Shot 2020-09-29 at 12 10 28 PM](https://user-images.githubusercontent.com/440241/94604721-eeacbc80-024c-11eb-9609-10fba95e24e1.JPG)
 
 #### Step1: List BIM360 folder contents API
 
@@ -15,7 +14,6 @@ endpoint: /listcontents
 
 ---
 
-![Screen Shot 2020-09-29 at 12 10 34 PM](https://user-images.githubusercontent.com/440241/94604729-f2404380-024c-11eb-9c87-b62171231459.JPG)
 
 #### Step2: List ZIP directory API
 
@@ -28,7 +26,6 @@ Reference: [The structure of a PkZIP](https://users.cs.jmu.edu/buchhofp/forensic
 
 ---
 
-![Screen Shot 2020-09-29 at 12 10 41 PM](https://user-images.githubusercontent.com/440241/94604737-f53b3400-024c-11eb-96ea-2270714abf89.JPG)
 
 #### Step3: Transfer API
 
@@ -39,7 +36,6 @@ endpoint: /transfer
 - Optional INPUT: destProject, destFolder (specify different destination "project & folder")
 ---
 
-![Screen Shot 2020-09-29 at 12 10 46 PM](https://user-images.githubusercontent.com/440241/94604750-f8362480-024c-11eb-92a6-f096fe747db8.JPG)
 
 #### Step4: Transfer Progress API
 
