@@ -1,10 +1,17 @@
+/*
+BIM360 Zip extractor and file transfer for BIM360 and large zip files
+
+Transfer only the minimal set of data required, by taking advantage of the zip structure and GET RANGE network requests:
+https://users.cs.jmu.edu/buchhofp/forensics/formats/pkzip.html
+
+*/
 const fetch = require('node-fetch');
 const StreamZip = require('node-stream-zip');
 const fs = require('fs');
 const path = require('path');
 const fastify = require('fastify')({ logger: true })
-let ze = null;
-let bm = null;
+
+let ze = null, bm = null;
 
 // ROUTES
 fastify.get('/', async (request, reply) => {
@@ -34,10 +41,13 @@ fastify.get('/listZipContents', async (request, reply) => {
 // INPUT: filename
 // OUTPUT: status of result (timeout after 30seconds)
 fastify.get('/transfer', async (request, reply) => {
+    if (!ze && !bm) return {status:`not-ready.  Use 'listcontents' first`};
     if (!request.query.filename) return "INPUT: filename";
+    if (request.query.destFolder) bm.folder = request.query.destFolder;
+    if (request.query.destProject) bm.project = request.query.destProject;
+
     try {
         const filename = request.query.filename;
-        if (!ze && !bm) return {status:`not-ready.  Use 'listcontents' first`};
         const destURL = await bm.createEmptyFile(filename);
         const status = await ze.extractFile(filename, destURL);
         const status2 = await bm.createVersion();
@@ -243,7 +253,9 @@ class BIM360utils {
     // token2 (optional) is a second ACCESS_TOKEN of a 2nd BIM360 HUB.
     // Use this to save the resulting output file to a secondary BIM360 Hub
     async createEmptyFile(filename) {
-        this.filename = filename;
+        const id = `${Math.random()}`.slice(2,5);
+        this.displayName = filename;
+        this.filename = `_${filename.slice(0,-4)}_${id}${filename.slice(-4)}`;
         const res = await fetch( `https://developer.api.autodesk.com/data/v1/projects/${this.project}/storage`, 
         {
             method: 'POST', 
@@ -286,7 +298,7 @@ class BIM360utils {
                 "data": {
                   "type": "items",
                   "attributes": {
-                    "displayName": "${this.filename}",
+                    "displayName": "${this.displayName}",
                     "extension": {
                       "type": "items:autodesk.bim360:File",
                       "version": "1.0"
