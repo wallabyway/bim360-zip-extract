@@ -7,11 +7,12 @@ extract files from a very large zip file, on bim360
 
 #### Step1: List BIM360 folder contents API
 
-endpoint: /listcontents
+endpoint: bim//list
 - INPUT:  project, folder, token
 - OUTPUT: list of files (json format)
-- Example: /listcontents?project=1234&folder=1234&token=ey3348...
+- Example: http://localhost:3000/bim/list?project=b.b4589cd9-ef9f-44a0-bea9-cc0dbc7f4544&folder=co.HBY2HScmSQiJkdsS9Qqm9Q&token=eyJhbGciOiJIUzI1NiIsImt.....
 
+note: make sure that project starts with a b. .. ie. b4589cd9-ef9f-44a0-bea9-cc0dbc7f4544 becomes b.b4589cd9-ef9f-44a0-bea9-cc0dbc7f4544
 ---
 
 
