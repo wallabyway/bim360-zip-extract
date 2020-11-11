@@ -151,7 +151,7 @@ class netZipExtract {
         await this._fetchWrite(tmpfile, 0, chunksize); // fetch/write header            
         await this._fetchWrite(tmpfile, this.fileLength - chunksize, chunksize); // fetch/write footer
         const zipHeaderOffset = 128;
-        if (offset && size)
+        if (size)
             await this._fetchWrite(tmpfile, offset, size + zipHeaderOffset); // fetch/write our filename within the zip
         fs.closeSync(tmpfile);        
     }
@@ -216,7 +216,7 @@ class netZipExtract {
             const res2 = await rs2.json();
             console.log(res2);
             // this.zip.close();  // don't close zip before upload complete. this seems buggy for slow networks
-            this._log(`Upload complete: ${filename} to ${destURL}.${res2}`)
+            this._log(`Upload complete: ${filename} to ${destURL}.${JSON.stringify(res2)}`)
             resolve(`Upload complete: ${filename} to ${destURL}. ${res2}`)
             });
         });
