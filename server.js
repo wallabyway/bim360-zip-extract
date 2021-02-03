@@ -37,6 +37,7 @@ fastify.get('/bim/list', async (request, reply) => {
 // OUTPUT: list of zip file contents
 fastify.get('/listZipContents', async (request, reply) => {
     if (!request.query.zipURL) return "INPUT: zipURL, size (file-size)";
+    setCORS(reply);
     try {
         ze = new netZipExtract(request.query.zipURL, request.query.size, bm.token);
         const contents = await ze.getContents();
@@ -48,6 +49,7 @@ fastify.get('/listZipContents', async (request, reply) => {
 // OUTPUT: status of result (timeout after 30seconds)
 fastify.get('/transfer', async (request, reply) => {
     if (!ze && !bm) return {status:`not-ready.  Use 'listcontents' first`};
+    setCORS(reply);
     if (!request.query.filename) return "INPUT: filename";
     if (request.query.destFolder) bm.folder = request.query.destFolder;
     if (request.query.destProject) bm.project = request.query.destProject;
