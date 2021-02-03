@@ -18,10 +18,16 @@ fastify.get('/', async (request, reply) => {
     return { status: 'alive' }
 })
 
+function setCORS(reply) {
+    reply.header("Access-Control-Allow-Origin", "*");
+    reply.header("Access-Control-Allow-Methods", "POST");    
+}
+
 // INPUT: projectID, folderID, AccessToken
 // OUTPUT: list of BIM360 files in the folder
 fastify.get('/bim/list', async (request, reply) => {
     if (!request.query.project) return "INPUT: project, folder, token";
+    setCORS(reply);
     bm = new BIM360utils(request.query.project, request.query.folder, request.query.token);
     const res = await bm.getFolderContents();
     return res;
