@@ -69,6 +69,7 @@ fastify.get('/transfer', async (request, reply) => {
 // OUTPUT: status of job
 fastify.get('/status', async (request, reply) => {
     if (!request.query.filename) return "INPUT: filename";
+    setCORS(reply);
     const id = request.query.filename;
     if (!id) return;
     return (id) ?  `{ "${id}" : "${ze.session[id]}" }` : "missing filename= parameter"
