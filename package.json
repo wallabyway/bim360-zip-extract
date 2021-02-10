@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "fastify": "^3.4.1",
+    "fastify-static": "^3.4.0",
     "fs": "0.0.1-security",
     "node-fetch": "^2.6.1",
     "node-stream-zip": "^1.11.3",

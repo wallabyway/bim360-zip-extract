@@ -13,9 +13,9 @@ const fastify = require('fastify')({ logger: true })
 
 let ze = null, bm = null;
 
-// ROUTES
-fastify.get('/', async (request, reply) => {
-    return { status: 'alive' }
+fastify.register(require('fastify-static'), {
+  root: path.join(__dirname, 'ui'),
+  prefix: '/', // optional: default '/'
 })
 
 function setCORS(reply) {
