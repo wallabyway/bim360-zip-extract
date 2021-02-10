@@ -2,6 +2,25 @@
 extract files from a very large zip file, on bim360
 
 
+deployed to http://bim360-zip-extract.herokuapp.com/
+
+### Walkthrough video (YouTube): https://youtu.be/02ChjbwLjUY
+
+![Screen Shot 2021-02-05 at 6 49 25 PM](https://user-images.githubusercontent.com/440241/107471063-52ab8f80-6b21-11eb-92f8-ea1d6b5d61cb.JPG)
+
+Instructions:
+1. GetBIM360access-token fromBIM360( use the debug tool, network console, type ‘manifest’)
+2. Copy/Paste Access-token into the Access-token box
+3. In a separate browser, Go to yourBIM360source folder
+4. Copy/Paste theBIM360source URL into the ‘Source' box
+5. Now, navigateBIM360to your destination Folder (and Project) and Copy/Paste theBIM360URL into the ‘Destination' box
+6. Click the blue ‘login’ button, wait, and you should see the Tree-list appear
+7. Now, “Double-click" on the Revit file (that is disguised as azip), in the tree-view. It should ‘expand’
+8. Now, “Double-click” on the sub-file, you want to transfer
+9. Click the blue “transfer” button and wait for the file to appear on the right “destination” Tree-list
+
+
+
 ### Four API's
 
 
