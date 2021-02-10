@@ -1,0 +1,93 @@
+<head>
+  <meta charset="utf-8" />
+  <title>BIM360 Zip Extractor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link rel="stylesheet" href="https://wallabyway.github.io/floor-animation/skeleton.min.css">
+  <link rel="shortcut icon" href="#">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.6/vue.min.js"></script>
+  <style>
+    #urn button, #token button, #scene button {
+      height: 1.7em;
+      padding: 0.3em;
+      line-height: 0;
+      font-weight: inherit;
+      text-transform: none;
+    }
+    .item {margin:0; padding-left: 5px;}
+    ul { margin-top:0; }
+  </style>
+
+    <script type="text/x-template" id="item-template">
+      <li>
+        <div
+        class="item"
+          :class="{bold: isFolder}"
+          @click="toggle1"
+          @dblclick="makeFolder">
+          <span v-if="isFolder">{{ isOpen ? '&#9660;' : '>' }}</span> {{ item.filename }}
+        </div>
+
+        <ul v-show="isOpen" v-if="isFolder">
+          <tree-item
+            class="item"
+            v-for="(child, index) in item.children"
+            :key="index"
+            :item="child"
+            @click="$emit('toggle1', $event)"
+            @make-folder="$emit('make-folder', $event)"
+            @add-item="$emit('add-item', $event)"
+          ></tree-item>
+        </ul>
+      </li>
+    </script>  
+</head>
+
+<body style="margin:0;">
+  <div id="app">
+      <div class="container">
+        <nav class="navbar">
+          <div class="container">
+            <ul class="navbar-list">
+              <li class="navbar-item"><img class="navbar-img" src="https://wallabyway.github.io/floor-animation/logo.png"/></li>
+              <li class="navbar-item"><div class="navbar-img"><input placeholder="BIM-ACCESS-TOKEN" class="u-full-width" v-model="form.token"></div></li>
+              <li class="navbar-item"><button @click="listBimFiles()" class="navbar-button button-primary">Login</button></li>
+              <li class="navbar-itemr"><a href="https://github.com/wallabyway/bim360-zip-extract"><button class="navbar-button">GitHub</button></a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+        <!-- just use a number and class 'column' or 'columns' -->
+      <div class="container" style="padding:5px 100px 5px 50px; height:80%">
+      <div class="row">
+        <div class="five columns"><h3>Source</h3>
+          <label for="example2">BIM360 URL Source Folder</label>
+          <input class="u-full-width"  v-model="form.srcURN" placeholder="https://docs.b360.autodesk.com/projects/113d171e-2a5e...62eb0da3f5/folders/urn:adsk.wipprod:fs.folder:co.LQ1fMEW...teMw/detail">
+          <label for="exampleMessage">Select Zip File</label>
+
+<!-- Tree View -->
+      <tree-item class="item" :item="treeData" @toggle1="toggle1" @make-folder="makeFolder" ></tree-item>
+
+        </div>
+
+        <div class="two columns" style="background-color:lightgray; height:100%">
+          <button @click="transfer()" class="navbar-button button-primary">Transfer</button>
+<!-- Selected Zip File selection -->
+          <label>Selected File To Transfer</label>
+              <div><input placeholder="Filename To Transfer" class="u-full-width" v-model="form.filename"></div>
+        </div>
+
+        <div class="five columns"><h3>Destination</h3>
+          <label >BIM360 URL Destination Folder</label>
+          <input class="u-full-width" v-model="form.destURN" placeholder="https://docs.b360.autodesk.com/projects/113d171e-2a5e...62eb0da3f5/folders/urn:adsk.wipprod:fs.folder:co.LQ1fMEW...teMw/detail" >
+          <tree-item class="item" :item="treeData2" ></tree-item>
+        </div>
+      </div>
+    </div>
+
+  
+
+</div>
+</body>
+  <script src="treelist.js"></script>
+  <script src="app.js"></script>
+
