@@ -18,6 +18,13 @@ fastify.register(require('fastify-static'), {
   prefix: '/', // optional: default '/'
 })
 
+fastify.get('/dir', async (request, reply) => {
+    const dirlist = fs.readdirSync('.', {withFileTypes: true})
+        .filter(item => !item.isDirectory())
+        .map(item => item.name);
+    return dirlist;
+});
+
 function setCORS(reply) {
     reply.header("Access-Control-Allow-Origin", "*");
     reply.header("Access-Control-Allow-Methods", "POST");    
@@ -135,7 +142,7 @@ class netZipExtract {
         this.URL = `${URN}`;
         this.token = token;
         this.fileLength = fileLength;
-        this.tmpFn = 'tmp.zip';
+        this.tmpFn = `tmp-${URN}.zip`;
         this.session = [];
     }
 
