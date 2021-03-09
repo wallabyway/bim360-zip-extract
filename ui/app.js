@@ -73,8 +73,11 @@ window.app = new Vue({
             const filename = this.selectedItem.filename;
             const bim = this.parseURN(this.form.destURN);
             const url = `${ServerURL}/transfer?filename=${filename}&destProject=${bim.project}&destFolder=${bim.folder}`;
-            setInterval( async () =>  {
+            let counter = 12;
+            const timr = setInterval( async () =>  {
+                if (counter < 0) timr.clearInterval(timr);
                 await this.updateTreeView(this.form.destURN, this.treeData2);
+                counter--;
             }, 4000);
             return (await fetch( url )).json();
         },
