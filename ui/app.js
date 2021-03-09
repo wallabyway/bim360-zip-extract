@@ -1,5 +1,5 @@
-//var ServerURL = 'http://localhost:8080';
-var ServerURL = 'https://bim360-zip-extract.herokuapp.com';
+var ServerURL = 'http://localhost:3000';
+//var ServerURL = 'https://bim360-zip-extract.herokuapp.com';
 
 
 
@@ -16,7 +16,7 @@ window.app = new Vue({
         },
         istoast: true,
         toastmsg: "na",
-        treeData: {  filename: "BIM360-Folder (Source)",  isOpen:true },
+        treeData: {  filename: "BIM360-Folder (Source)", datetime:"-", isOpen:true },
         treeData2: treeData2
     },
     methods: {
@@ -42,9 +42,7 @@ window.app = new Vue({
 
         listBimFiles: async function() {
             await this.updateTreeView(this.form.srcURN, this.treeData);
-            setInterval( async () =>  {
-                await this.updateTreeView(this.form.destURN, this.treeData2);
-            }, 4000);
+            await this.updateTreeView(this.form.destURN, this.treeData2);
         },
 
 
@@ -75,8 +73,10 @@ window.app = new Vue({
             const filename = this.selectedItem.filename;
             const bim = this.parseURN(this.form.destURN);
             const url = `${ServerURL}/transfer?filename=${filename}&destProject=${bim.project}&destFolder=${bim.folder}`;
-            const res = await fetch( url );
-            return res.json();
+            setInterval( async () =>  {
+                await this.updateTreeView(this.form.destURN, this.treeData2);
+            }, 4000);
+            return (await fetch( url )).json();
         },
 
         showtoast: function(msg) {

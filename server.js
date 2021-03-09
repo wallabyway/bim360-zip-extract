@@ -63,9 +63,9 @@ fastify.get('/transfer', async (request, reply) => {
 
     try {
         const filename = request.query.filename;
-        const destURL = await bm.createEmptyFile(filename);
-        const status = await ze.extractFile(filename, destURL);
-        const status2 = await bm.createVersion();
+        const resObj = await bm.createEmptyFile(filename);
+        const status = await ze.extractFile(filename, resObj.destURL);
+        const status2 = await bm.createVersion(resObj);
         return {status1: status, status2: status2};
     } catch(err) {
         return {status: err};
@@ -250,6 +250,9 @@ class BIM360utils {
         this.folder = folder;
         this.project = project;
         this.token = token;
+        this.filename = "";
+        this.displayName = "";
+        this.objid = "";
     }
 
     async getFolderContents() {
@@ -257,11 +260,15 @@ class BIM360utils {
         { headers: { Authorization: `Bearer ${this.token}` }});
         const jres = await res.json();
         if (!jres.included) return jres;
-        return jres.included.map(i => { return ({ 
+        let lista = jres.included.map(i => { return ({ 
             filename: i.attributes.displayName, 
             size:i.attributes.storageSize,
+            lastModifiedTime: i.attributes.lastModifiedTime,
+            datetime: (new Date(i.attributes.lastModifiedTime)).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-'),
             url: `https://developer.api.autodesk.com/oss/v2/buckets/wip.dm.prod/objects/${i.relationships.storage.data.id.split('/')[1]}`
         })});
+        lista.sort((a,b)=>{return (b.lastModifiedTime < a.lastModifiedTime) ? -1:1});
+        return lista;
     }
 
     
@@ -297,10 +304,15 @@ class BIM360utils {
         });
         const obj = await res.json();
         this.objid = obj.data.id.split("/")[1];
-        return `https://developer.api.autodesk.com/oss/v2/buckets/wip.dm.prod/objects/${this.objid}`;
+        return {
+          objid: this.objid,
+          filename: filename,
+          displayName: filename,
+          destURL: `https://developer.api.autodesk.com/oss/v2/buckets/wip.dm.prod/objects/${this.objid}`
+        }
     }
 
-    async createVersion() {
+    async createVersion( ob ) {
         const res = await fetch( `https://developer.api.autodesk.com/data/v1/projects/${this.project}/items`, 
         {
             method: 'POST', 
@@ -314,7 +326,7 @@ class BIM360utils {
                 "data": {
                   "type": "items",
                   "attributes": {
-                    "displayName": "${this.displayName}",
+                    "displayName": "${ob.displayName}",
                     "extension": {
                       "type": "items:autodesk.bim360:File",
                       "version": "1.0"
@@ -339,7 +351,7 @@ class BIM360utils {
                     "type": "versions",
                     "id": "1",
                     "attributes": {
-                      "name": "${this.filename}",
+                      "name": "${ob.filename}",
                       "extension": {
                         "type": "versions:autodesk.bim360:File",
                         "version": "1.0"
@@ -349,7 +361,7 @@ class BIM360utils {
                       "storage": {
                         "data": {
                           "type": "objects",
-                          "id": "urn:adsk.objects:os.object:wip.dm.prod/${this.objid}"
+                          "id": "urn:adsk.objects:os.object:wip.dm.prod/${ob.objid}"
                         }
                       }
                     }

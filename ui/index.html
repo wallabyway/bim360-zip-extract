@@ -24,7 +24,7 @@
           :class="{bold: isFolder}"
           @click="toggle1"
           @dblclick="makeFolder">
-          <span v-if="isFolder">{{ isOpen ? '&#9660;' : '>' }}</span> {{ item.filename }}
+          <span v-if="isFolder">{{ isOpen ? '&#9660;' : '>' }}</span> <b> {{ item.filename }}</b>&emsp;{{ item.datetime }}</b>
         </div>
 
         <ul v-show="isOpen" v-if="isFolder">
