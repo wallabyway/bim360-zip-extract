@@ -142,7 +142,7 @@ class netZipExtract {
         this.URL = `${URN}`;
         this.token = token;
         this.fileLength = fileLength;
-        this.tmpFn = `tmp-${URN}.zip`;
+        this.tmpFn = `tmp-${token.slice(0,20)}.zip`;
         this.session = [];
     }
 
