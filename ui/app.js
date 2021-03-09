@@ -1,5 +1,5 @@
-var ServerURL = 'http://localhost:3000';
-//var ServerURL = 'https://bim360-zip-extract.herokuapp.com';
+//var ServerURL = 'http://localhost:3000';
+var ServerURL = 'https://bim360-zip-extract.herokuapp.com';
 
 
 
