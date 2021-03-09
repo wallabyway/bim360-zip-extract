@@ -133,6 +133,18 @@ fastify.get('/extract2', async (request, reply) => {
 
 */
 
+String.prototype.hashCode = function() {
+  var hash = 0;
+  if (this.length == 0) {
+      return hash;
+  }
+  for (var i = 0; i < this.length; i++) {
+      var char = this.charCodeAt(i);
+      hash = ((hash<<5)-hash)+char;
+      hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
+}
 
 //
 // Main
@@ -142,7 +154,7 @@ class netZipExtract {
         this.URL = `${URN}`;
         this.token = token;
         this.fileLength = fileLength;
-        this.tmpFn = `tmp-${token.slice(0,20)}.zip`;
+        this.tmpFn = `tmp-${URN.hashCode()}.zip`;
         this.session = [];
     }
 
