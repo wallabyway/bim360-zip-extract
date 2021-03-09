@@ -318,7 +318,7 @@ class BIM360utils {
         this.objid = obj.data.id.split("/")[1];
         return {
           objid: this.objid,
-          filename: filename,
+          filename: this.filename,
           displayName: filename,
           destURL: `https://developer.api.autodesk.com/oss/v2/buckets/wip.dm.prod/objects/${this.objid}`
         }
