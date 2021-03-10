@@ -1,6 +1,6 @@
 //var ServerURL = 'http://localhost:3000';
 var ServerURL = 'https://bim360-zip-extract.herokuapp.com';
-
+let counter;
 
 
 // Vue.js components
@@ -35,6 +35,13 @@ window.app = new Vue({
             }
         },
 
+        init() {
+            if (window.location.hash) {
+                this.form.srcURN = window.location.hash.split("&")[0].slice(5);
+                this.form.destURN = window.location.hash.split("&")[1].slice(4);
+            }
+        },
+
         parseURN(urn) {
             const arr = urn.split('/');
             return {project:`b.${arr[4]}`, folder:arr[6].split("folder:")[1]}
@@ -42,9 +49,13 @@ window.app = new Vue({
 
         listBimFiles: async function() {
             await this.updateTreeView(this.form.srcURN, this.treeData);
-            await this.updateTreeView(this.form.destURN, this.treeData2);
+            counter = Date.now()+4000;
+            if (this.timr) return;
+            this.timr = setInterval( async () =>  {
+                if (counter > Date.now())
+                    await this.updateTreeView(this.form.destURN, this.treeData2);
+            }, 2000);
         },
-
 
         updateTreeView: async function(urn, treeData) {
             const bim = this.parseURN(urn);
@@ -73,12 +84,7 @@ window.app = new Vue({
             const filename = this.selectedItem.filename;
             const bim = this.parseURN(this.form.destURN);
             const url = `${ServerURL}/transfer?filename=${filename}&destProject=${bim.project}&destFolder=${bim.folder}`;
-            let counter = 12;
-            const timr = setInterval( async () =>  {
-                if (counter < 0) timr.clearInterval(timr);
-                await this.updateTreeView(this.form.destURN, this.treeData2);
-                counter--;
-            }, 4000);
+            counter = Date.now() + 50000;
             return (await fetch( url )).json();
         },
 
@@ -88,7 +94,7 @@ window.app = new Vue({
             this.toastmsg = msg;
             setTimeout(function(){ app.istoast=false; }, 3000);
         },
-
-
     }
 })
+
+window.app.init();
