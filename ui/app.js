@@ -1,5 +1,5 @@
-//var ServerURL = 'http://localhost:3000';
-var ServerURL = 'https://bim360-zip-extract.herokuapp.com';
+var ServerURL = '';
+//var ServerURL = 'https://bim360-zip-extract.herokuapp.com';
 let counter;
 
 
@@ -83,8 +83,16 @@ window.app = new Vue({
         transfer: async function() {
             const filename = this.selectedItem.filename;
             const bim = this.parseURN(this.form.destURN);
-            const url = `${ServerURL}/transfer?filename=${filename}&destProject=${bim.project}&destFolder=${bim.folder}`;
+            let url = `${ServerURL}/transfer?filename=${filename}&destProject=${bim.project}&destFolder=${bim.folder}`;
+            // 
+            // bump version, if filename already exists in destination list.
+            let lineage = this._data.treeData2.children.filter(i => {return i.filename == filename});
+            if (lineage.length > 0)
+                url += `&lineage=${lineage[0].lineage}`
+
+            // re-render destination tree (and update list)
             counter = Date.now() + 50000;
+
             return (await fetch( url )).json();
         },
 

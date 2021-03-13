@@ -65,8 +65,11 @@ fastify.get('/transfer', async (request, reply) => {
         const filename = request.query.filename;
         const resObj = await bm.createEmptyFile(filename);
         const status = await ze.extractFile(filename, resObj.destURL);
-        const status2 = await bm.createVersion(resObj);
-        return {status1: status, status2: status2};
+        let ress = null;
+        if (request.query.lineage)
+          ress = await bm.bumpVersion(resObj, request.query.lineage);
+        else
+          ress = await bm.createVersion(resObj);
     } catch(err) {
         return {status: err};
     }
@@ -276,6 +279,8 @@ class BIM360utils {
             filename: i.attributes.displayName, 
             size:i.attributes.storageSize,
             lastModifiedTime: i.attributes.lastModifiedTime,
+            lineage: i.relationships.item.data.id,
+            version: i.attributes.versionNumber,
             datetime: (new Date(i.attributes.lastModifiedTime)).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-'),
             url: `https://developer.api.autodesk.com/oss/v2/buckets/wip.dm.prod/objects/${i.relationships.storage.data.id.split('/')[1]}`
         })});
@@ -288,9 +293,8 @@ class BIM360utils {
     // token2 (optional) is a second ACCESS_TOKEN of a 2nd BIM360 HUB.
     // Use this to save the resulting output file to a secondary BIM360 Hub
     async createEmptyFile(filename) {
-        const id = `${Math.random()}`.slice(2,5);
-        this.displayName = filename;
-        this.filename = `_${filename.slice(0,-4)}_${id}${filename.slice(-4)}`;
+        //const id = `${Math.random()}`.slice(2,5);
+        this.filename = filename;//`_${filename.slice(0,-4)}_${id}${filename.slice(-4)}`;
         const res = await fetch( `https://developer.api.autodesk.com/data/v1/projects/${this.project}/storage`, 
         {
             method: 'POST', 
@@ -319,7 +323,6 @@ class BIM360utils {
         return {
           objid: this.objid,
           filename: this.filename,
-          displayName: filename,
           destURL: `https://developer.api.autodesk.com/oss/v2/buckets/wip.dm.prod/objects/${this.objid}`
         }
     }
@@ -338,7 +341,7 @@ class BIM360utils {
                 "data": {
                   "type": "items",
                   "attributes": {
-                    "displayName": "${ob.displayName}",
+                    "displayName": "${ob.filename}",
                     "extension": {
                       "type": "items:autodesk.bim360:File",
                       "version": "1.0"
@@ -384,4 +387,36 @@ class BIM360utils {
         const obj = await res.json();
         return obj;
     }
+
+    async getTip( ob, lineageId ) {
+      
+    }
+
+    async bumpVersion( ob, lineageId ) {
+      const res = await fetch( `https://developer.api.autodesk.com/data/v1/projects/${this.project}/versions`, 
+      {
+          method: 'POST', 
+          headers: {
+              'Content-Type': 'application/vnd.api+json',
+              Accept : 'application/vnd.api+json',
+              Authorization: `Bearer ${this.token}`
+          },
+          body: `{
+            "jsonapi": { "version": "1.0" },
+            "data": {
+               "type": "versions",
+               "attributes": {
+                  "name": "${ob.filename}",
+                  "extension": { "type": "versions:autodesk.bim360:File", "version": "1.0"}
+               },
+               "relationships": {
+                  "item": { "data": { "type": "items", "id": "${lineageId}" } },
+                  "storage": { "data": { "type": "objects", "id": "urn:adsk.objects:os.object:wip.dm.prod/${ob.objid}" } }
+               }
+            }
+         }`
+      });
+      const obj = await res.json();
+      return obj;
+  }
 }
