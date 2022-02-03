@@ -1,5 +1,14 @@
 # bim360-zip-extract
 extract files from a very large zip file, on bim360
+Also, detects the difference between .RVT and .ZIP
+
+### The problem:
+![0-theProblem](https://user-images.githubusercontent.com/440241/152435523-75d191ec-1052-41ed-8fd7-6ab3be3b2157.JPG)
+![1-step1-partial-transfer](https://user-images.githubusercontent.com/440241/152435543-1c69dd13-7e39-43bd-8128-d0c89f83986a.JPG)
+![2-step2-create-incomplete-zip-file-decode-dir](https://user-images.githubusercontent.com/440241/152435560-d5f1b10e-aad5-40a3-b1dd-e6789db7bb83.JPG)
+![3-step3-use-offsets-and-retrieve-file-with-range-get](https://user-images.githubusercontent.com/440241/152435573-8f263fff-361e-49b3-a9ed-1cc48887720d.JPG)
+![4-step4-unzip-file-and-save](https://user-images.githubusercontent.com/440241/152435582-79b2fdf1-665d-4881-9f32-573c71ad6aca.JPG)
+
 
 
 deployed to http://bim360-zip-extract.herokuapp.com/
